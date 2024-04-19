@@ -19,5 +19,15 @@
         /// the change in time in number of seconds elapsed since the last waypoint
         /// </summary>
         public string DeltaTime {  get; set; }
+
+        public Waypoint()
+        {
+                
+        }
+
+        public override string ToString()
+        {
+            return $"{Latitude},{Longitude},{DeltaTime}";
+        }
     }
 }

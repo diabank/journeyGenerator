@@ -1,6 +1,6 @@
 ﻿namespace journeyGenerator
 {
-    public abstract class vehicle
+    public abstract class Vehicle
     {
         /// <summary>
         /// The identifier field is the first field of the vehicle line.It is free ASCII text that will uniquely identify the type of

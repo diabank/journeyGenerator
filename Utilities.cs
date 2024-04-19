@@ -50,7 +50,27 @@
         /// <returns></returns>
         public static int GenerateRandomNumberOfWaypoint()
         {
-            return RandomGenerator(10, 30);
+            //Minus starting which is the first waypoint
+            return RandomGenerator(9, 29);
+        }
+
+        /// <summary>
+        /// Generate Random Waypoint Time Intervals
+        /// </summary>
+        /// <param name="numberOfWaypoint"></param>
+        /// <param name="minTimeInterval"></param>
+        /// <param name="maxTimeInterval"></param>
+        /// <returns></returns>
+        public static int[] GenerateRandomWaypointTimeIntervals(int numberOfWaypoint, int minTimeInterval, int maxTimeInterval) 
+        {
+            var arrayOfInts = new int[numberOfWaypoint];
+
+            for (int i = 0; i < numberOfWaypoint; i++) 
+            {
+                arrayOfInts[i] = RandomGenerator(minTimeInterval, maxTimeInterval);
+            }
+
+            return arrayOfInts;
         }
 
         /// <summary>
@@ -64,33 +84,29 @@
         }
 
         /// <summary>
-        /// Generate Random Motor Boat Speed
-        /// Motor boats travel between 25 and 60 miles per hour
+        /// Generate Random Boat Speed based on type of boat
         /// </summary>
+        /// <param name="power"></param>
         /// <returns></returns>
-        public static int GenerateRandomMotorBoatSpeed()
+        /// <exception cref="ArgumentException"></exception>
+        public static int GenerateRandomBoatSpeed(PowerEnum power) =>
+        power switch
         {
-            return RandomGenerator(25, 60);
-        }
+            PowerEnum.SAIL => RandomGenerator(15, 30),
+            PowerEnum.UNPOWERED => RandomGenerator(1, 10),
+            PowerEnum.MOTOR => RandomGenerator(25, 60),
+            _ => throw new ArgumentException("Invalid enum value for power", nameof(power))
+        };
+
 
         /// <summary>
-        /// Generate Random Sail Boat Speed
-        /// Sail boats travel between 15 and 30 miles per hour
+        /// Generate Random Bearing
+        /// Range from 0 degree to 359 degree
         /// </summary>
         /// <returns></returns>
-        public static int GenerateRandomSailBoatSpeed()
+        public static int GenerateRandomBearing()
         {
-            return RandomGenerator(15, 30);
-        }
-
-        /// <summary>
-        /// Generate Random Unpowered Boat Speed
-        /// Unpowered boats travel between 1 and 10 miles per hour
-        /// </summary>
-        /// <returns></returns>
-        public static int GenerateRandomUnpoweredBoatSpeed()
-        {
-            return RandomGenerator(1, 10);
+            return RandomGenerator(0, 359);
         }
 
         /// <summary>
@@ -138,14 +154,32 @@
             return bearing;
         }
 
-        public static (int longitute,int latitute) GenerateRandomStartingWaypointInBoatZone(BoatZoneEnum zone) =>
+        /// <summary>
+        /// Generate Random Starting Waypoint For Car
+        /// NB: staying Continental US for simplicity
+        /// </summary>
+        /// <returns>Tuple (int latitute, int longitude)</returns>
+        public static (int latitute, int longitude) GenerateRandomStartingWaypointForCar()
+        {
+            var latitude = RandomGenerator(25, 50);
+            var longitude = RandomGenerator(-120, -80);
+            return (latitude, longitude);
+        }
+
+        /// <summary>
+        /// Generate Random Starting Waypoint In specific Boat Zone
+        /// </summary>
+        /// <param name="zone"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static (int latitute, int longitude) GenerateRandomStartingWaypointInBoatZone(BoatZoneEnum zone) =>
         zone switch
         {
             BoatZoneEnum.Zone1 => GenerateRandomStartingWaypointInBoatZone1(),
             BoatZoneEnum.Zone2 => GenerateRandomStartingWaypointInBoatZone2(),
             BoatZoneEnum.Zone3 => GenerateRandomStartingWaypointInBoatZone3(),
             BoatZoneEnum.Zone4 => GenerateRandomStartingWaypointInBoatZone4(),
-            _ => throw new ArgumentException("Invalid enum value for command", nameof(zone)),
+            _ => throw new ArgumentException("Invalid enum value for zone", nameof(zone))
         };
 
 
