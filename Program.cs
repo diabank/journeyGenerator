@@ -4,26 +4,32 @@
     {
         static void Main(string[] args)
         {
-            Car car = new Car()
+            try
             {
-                Descriptor = "OLIVE BRANCH"
-            };
+                Car car = new Car()
+                {
+                    Descriptor = "OLIVE BRANCH"
+                };
 
-            Boat boat = new Boat()
+                Boat boat = new Boat()
+                {
+                    Descriptor = "ESPERANCE"
+                };
+
+                Journey carJourney = new Journey(car);
+                Journey boatJourney = new Journey(boat);
+
+                boatJourney.GenerateBoatWayPoints();
+                carJourney.GenerateCarWayPoints();
+
+                boatJourney.WriteToFile();
+                carJourney.WriteToFile();
+
+                Console.WriteLine("Journey Generator ... Complete");
+            } catch (Exception ex) 
             {
-                Descriptor = "ESPERANCE"
-            };
-
-            Journey carJourney = new Journey(car);
-            Journey boatJourney = new Journey(boat);
-
-            boatJourney.GenerateBoatWayPoints();
-            carJourney.GenerateCarWayPoints();
-
-            boatJourney.WriteToFile();
-            carJourney.WriteToFile();
-
-            Console.WriteLine("Journey Generator ... Complete");
+                Console.WriteLine($"Error occured. Details: {ex}");
+            }
             Console.ReadLine();
         }
     }

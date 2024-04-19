@@ -242,7 +242,32 @@ namespace journeyGenerator
         /// </summary>
         public void WriteToFile()
         {
+            string fileName = "";
+            dynamic vehicleBuilt = null;
 
+            if (Vehicle is Car)
+            {
+                fileName = "carJourney.jny";
+                vehicleBuilt = (Car)Vehicle;
+            }
+            else if (Vehicle is Boat)
+            {
+                fileName = "boatJourney.jny";
+                vehicleBuilt = (Boat)Vehicle;
+            }
+
+
+            string docPath = Path.Combine(Directory.GetCurrentDirectory(), fileName);
+
+            using (StreamWriter outputFile = new StreamWriter(docPath))
+            {
+                outputFile.WriteLine(vehicleBuilt.ToString());
+
+                foreach (var waypoint in Waypoints)
+                {                    
+                    outputFile.WriteLine(waypoint.ToString());
+                }
+            }
         }
     }
 }
