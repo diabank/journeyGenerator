@@ -61,16 +61,61 @@
         /// <param name="minTimeInterval"></param>
         /// <param name="maxTimeInterval"></param>
         /// <returns></returns>
-        public static int[] GenerateRandomWaypointTimeIntervals(int numberOfWaypoint, int minTimeInterval, int maxTimeInterval) 
+        public static double[] GenerateRandomWaypointTimeIntervals(int numberOfWaypoint, int minTimeInterval, int maxTimeInterval)
         {
-            var arrayOfInts = new int[numberOfWaypoint];
+            var arrayOfDouble = new double[numberOfWaypoint];
 
-            for (int i = 0; i < numberOfWaypoint; i++) 
+            for (int i = 0; i < numberOfWaypoint; i++)
             {
-                arrayOfInts[i] = RandomGenerator(minTimeInterval, maxTimeInterval);
+                arrayOfDouble[i] = Math.Round(RandomDoubleGenerator(minTimeInterval, maxTimeInterval), 2);
             }
 
-            return arrayOfInts;
+            return arrayOfDouble;
+        }
+
+        /// <summary>
+        /// Generate Random Turning Point
+        /// </summary>
+        /// <param name="numberOfWaypoint"></param>
+        /// <param name="numberOfTurn"></param>
+        /// <returns></returns>
+        public static Queue<int> GenerateRandomTurningPoint(int numberOfWaypoint, int numberOfTurn)
+        {
+            var arrayOfInts = new int[numberOfTurn];
+
+            for (int i = 0; i < numberOfTurn; i++)
+            {
+                //No turn after the last waypoint 
+                //Only turn from the second waypoint onward
+                int nextTurn = RandomGenerator(2, numberOfWaypoint - 1);
+
+                //Making sure not more than turn is scheduled between 2 waypoint
+                //TODO: Might Need to revist - minimum opportunity for turn is 7 and minimum turn 3
+                int maxNumberOfTry = 1000;
+                int whileLoopCount = 0;
+
+                //TODO: Engineering the randomness of turn will need a bit of re-work -- a bit clunky. while loop in a for loop (O(n2))
+                while (arrayOfInts.Contains(nextTurn))
+                {
+                    nextTurn = RandomGenerator(2, numberOfWaypoint - 1);
+                    whileLoopCount++;
+                    if (whileLoopCount == maxNumberOfTry)
+                        break;
+                }
+
+                arrayOfInts[i] = nextTurn;
+            }
+
+            Array.Sort(arrayOfInts);
+
+            Queue<int> queue = new Queue<int>();
+
+            for (int q = 0; q < arrayOfInts.Length; q++)
+            {
+                queue.Enqueue(arrayOfInts[q]);
+            }
+
+            return queue;
         }
 
         /// <summary>
@@ -97,7 +142,6 @@
             PowerEnum.MOTOR => RandomGenerator(25, 60),
             _ => throw new ArgumentException("Invalid enum value for power", nameof(power))
         };
-
 
         /// <summary>
         /// Generate Random Bearing
@@ -139,14 +183,14 @@
         /// </summary>
         /// <param name="bearing"></param>
         /// <returns></returns>
-        public static int AdjustBearing(int bearing) 
+        public static int AdjustBearing(int bearing)
         {
-            if(bearing < 0)
+            if (bearing < 0)
             {
                 bearing = 360 - bearing;
             }
 
-            if(bearing > 360) 
+            if (bearing > 360)
             {
                 bearing = bearing - 360;
             }
@@ -179,7 +223,7 @@
             BoatZoneEnum.Zone2 => GenerateRandomStartingWaypointInBoatZone2(),
             BoatZoneEnum.Zone3 => GenerateRandomStartingWaypointInBoatZone3(),
             BoatZoneEnum.Zone4 => GenerateRandomStartingWaypointInBoatZone4(),
-            _ => throw new ArgumentException("Invalid enum value for zone", nameof(zone))
+            _ => throw new ArgumentException("Invalid enum value for boat zone", nameof(zone))
         };
 
 
@@ -230,6 +274,18 @@
             var longitude = RandomGenerator(-49, -24);
             return (latitude, longitude);
         }
+
+
+        public static bool IsBoatWithinZone(double latitude, double longitude, BoatZoneEnum boatZone) =>
+        boatZone switch
+        {
+            BoatZoneEnum.Zone1 => IsBoatWithinZone1(latitude, longitude),
+            BoatZoneEnum.Zone2 => IsBoatWithinZone2(latitude, longitude),
+            BoatZoneEnum.Zone3 => IsBoatWithinZone3(latitude, longitude),
+            BoatZoneEnum.Zone4 => IsBoatWithinZone4(latitude, longitude),
+            _ => throw new ArgumentException("Invalid enum value for boat zone", nameof(boatZone))
+        };
+
 
         /// <summary>
         /// Is Boat Within Zone 1

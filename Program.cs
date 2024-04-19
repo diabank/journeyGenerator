@@ -1,6 +1,4 @@
-﻿using SNC;
-
-namespace journeyGenerator
+﻿namespace journeyGenerator
 {
     internal class Program
     {
@@ -8,22 +6,24 @@ namespace journeyGenerator
         {
             Car car = new Car()
             {
-                Descriptor = "LEAF",
+                Descriptor = "OLIVE BRANCH"
             };
 
             Boat boat = new Boat()
             {
-                Descriptor = "Esperance"
+                Descriptor = "ESPERANCE"
             };
-            Console.WriteLine(car);
-            Console.WriteLine(boat);
 
             Journey carJourney = new Journey(car);
             Journey boatJourney = new Journey(boat);
 
-            carJourney.GenerateWayPoints();
-            boatJourney.GenerateWayPoints();
+            boatJourney.GenerateBoatWayPoints();
+            carJourney.GenerateCarWayPoints();
 
+            boatJourney.WriteToFile();
+            carJourney.WriteToFile();
+
+            Console.WriteLine("Journey Generator ... Complete");
             Console.ReadLine();
         }
     }

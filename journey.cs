@@ -22,19 +22,23 @@ namespace journeyGenerator
         /// <summary>
         /// WaypointsTimeIntervals
         /// </summary>
-        public int[] WaypointsTimeIntervals {  get; set; }
+        public double[] WaypointsTimeIntervals {  get; set; }
+
         /// <summary>
         /// Bearing
         /// </summary>
         public int Bearing { get; set; }
+
         /// <summary>
         /// Starting Latitude
         /// </summary>
         public double StartingLatitude { get; set; }
+
         /// <summary>
         /// Starting Longitude
         /// </summary>
         public double StartingLongitude { get; set; }
+
         /// <summary>
         /// Boat Zone
         /// </summary>
@@ -44,6 +48,16 @@ namespace journeyGenerator
         /// vehicle Speed
         /// </summary>
         public int Speed { get; set; }
+
+        /// <summary>
+        /// Number Of Turn
+        /// </summary>
+        public int NumberOfTurn { get; set; }
+
+        /// <summary>
+        /// When is the Next Turn?
+        /// </summary>
+        public Queue<int> NextTurn { get; set; }
 
         /// <summary>
         /// Default Constructor
@@ -63,7 +77,12 @@ namespace journeyGenerator
             Vehicle = vehicle;
             Waypoints = new List<Waypoint>();
             NumberOfWaypoints = Utilities.GenerateRandomNumberOfWaypoint();
-            WaypointsTimeIntervals = Utilities.GenerateRandomWaypointTimeIntervals(NumberOfWaypoints -1 , 1, 3600);
+            WaypointsTimeIntervals = Utilities.GenerateRandomWaypointTimeIntervals(NumberOfWaypoints -1 , 1, 3599);
+            
+            // The vehicles must turn at least 3 times on their route.
+            NumberOfTurn = Utilities.RandomGenerator(3, 10);
+            NextTurn = Utilities.GenerateRandomTurningPoint(NumberOfWaypoints, NumberOfTurn);
+
 
             if(vehicle is Boat)
             {
@@ -92,20 +111,30 @@ namespace journeyGenerator
         /// <summary>
         /// Generate WayPoints
         /// </summary>
-        public void GenerateWayPoints()
+        public void GenerateCarWayPoints()
         {
+            if(!(Vehicle is Car)) 
+            {
+                throw new ApplicationException("Vehicle is not a car");
+            }
+
             double currentLat = 0.00;
             double currentLong = 0.00;
 
+            //default turning point is 2
+            int nextTurningPoint = 2;
+
+            //First Waypoint - Starting Point
             Waypoints.Add(new Waypoint()
             {
-                Latitude = StartingLatitude.ToString(),
-                Longitude = StartingLongitude.ToString(),
-                DeltaTime = "0"
+                Latitude = StartingLatitude,
+                Longitude = StartingLongitude,
+                DeltaTime = 0
             });
 
             currentLat = StartingLatitude;
             currentLong = StartingLongitude;
+            nextTurningPoint = NextTurn.Dequeue();
 
             for(int i = 0; i < NumberOfWaypoints - 1; i++) 
             {
@@ -114,18 +143,97 @@ namespace journeyGenerator
                 double latCalculated = 0.00;
                 double longCalculated = 0.00;
 
+                //Is it time to turn?
+                if(nextTurningPoint == (i+1) && NextTurn.Any())
+                {
+                    Bearing = Utilities.GenerateRandomBearingChangeForCar(Bearing);
+                    nextTurningPoint = NextTurn.Dequeue();
+                }
+
                 //Get new waypoint coordinates 
                 GeoCalc.GetEndingCoordinates(currentLat, currentLong, Bearing, distanceTravelled, out latCalculated, out longCalculated);
 
-                Waypoints.Add(new Waypoint()
+                var newWayPoint = new Waypoint()
                 {
-                    Latitude = latCalculated.ToString(),
-                    Longitude = longCalculated.ToString(),
-                    DeltaTime = WaypointsTimeIntervals[i].ToString()
-                });
+                    Latitude = Math.Round(latCalculated, 6),
+                    Longitude = Math.Round(longCalculated, 6),
+                    DeltaTime = WaypointsTimeIntervals[i]
+                };
 
-                currentLat = latCalculated;
-                currentLong = longCalculated;
+
+                Waypoints.Add(newWayPoint);
+
+                currentLat = newWayPoint.Latitude;
+                currentLong = newWayPoint.Longitude;
+            }
+        }
+
+        /// <summary>
+        /// Generate WayPoints
+        /// </summary>
+        public void GenerateBoatWayPoints()
+        {
+            if (!(Vehicle is Boat))
+            {
+                throw new ApplicationException("Vehicle is not a Boat");
+            }
+
+            //Boat boat = (Boat)Vehicle;
+
+            double currentLat = 0.00;
+            double currentLong = 0.00;
+
+            //default turning point is 2
+            int nextTurningPoint = 2;
+
+            //First Waypoint - Starting Point
+            Waypoints.Add(new Waypoint()
+            {
+                Latitude = StartingLatitude,
+                Longitude = StartingLongitude,
+                DeltaTime = 0
+            });
+
+            currentLat = StartingLatitude;
+            currentLong = StartingLongitude;
+            nextTurningPoint = NextTurn.Dequeue();
+
+            for (int i = 0; i < NumberOfWaypoints - 1; i++)
+            {
+                //Convert Miles per hour to Feet per second
+                var distanceTravelled = ((Speed * 5280) / 3600) * WaypointsTimeIntervals[i];
+                double latCalculated = 0.00;
+                double longCalculated = 0.00;
+                int someNewBearing = 0;
+
+                //Is it time to turn?
+                if (nextTurningPoint == (i + 1) && NextTurn.Any())
+                {
+                    someNewBearing = Utilities.GenerateRandomBearingChangeForBoat(Bearing);
+                    nextTurningPoint = NextTurn.Dequeue();
+                }
+
+
+                GeoCalc.GetEndingCoordinates(currentLat, currentLong, someNewBearing, distanceTravelled, out latCalculated, out longCalculated);
+
+                if(!Utilities.IsBoatWithinZone(latCalculated, longCalculated, BoatZone)) 
+                {
+                    someNewBearing = Utilities.GenerateRandomBearingChangeForBoat(Bearing);
+                    GeoCalc.GetEndingCoordinates(currentLat, currentLong, someNewBearing, distanceTravelled, out latCalculated, out longCalculated);
+                }
+                
+                Bearing = someNewBearing;
+                var newWayPoint = new Waypoint()
+                {
+                    Latitude = Math.Round(latCalculated, 6),
+                    Longitude = Math.Round(longCalculated, 6),
+                    DeltaTime = WaypointsTimeIntervals[i]
+                };
+
+                Waypoints.Add(newWayPoint);
+
+                currentLat = newWayPoint.Latitude;
+                currentLong = newWayPoint.Longitude;
             }
         }
 
